@@ -2,10 +2,12 @@ from flask import Blueprint
 from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
-from core.models.assignments import Assignment
+from core.models.assignments import Assignment, AssignmentStateEnum
+from core.libs.exceptions import FyleError
 
 from .schema import AssignmentSchema, AssignmentSubmitSchema
-student_assignments_resources = Blueprint('student_assignments_resources', __name__)
+student_assignments_resources = Blueprint(
+    'student_assignments_resources', __name__)
 
 
 @student_assignments_resources.route('/assignments', methods=['GET'], strict_slashes=False)
@@ -13,7 +15,8 @@ student_assignments_resources = Blueprint('student_assignments_resources', __nam
 def list_assignments(p):
     """Returns list of assignments"""
     students_assignments = Assignment.get_assignments_by_student(p.student_id)
-    students_assignments_dump = AssignmentSchema().dump(students_assignments, many=True)
+    students_assignments_dump = AssignmentSchema().dump(
+        students_assignments, many=True)
     return APIResponse.respond(data=students_assignments_dump)
 
 
@@ -23,6 +26,9 @@ def list_assignments(p):
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
     assignment = AssignmentSchema().load(incoming_payload)
+    if assignment.content is None:
+        raise FyleError(400, "Content cannot be None")
+
     assignment.student_id = p.student_id
 
     upserted_assignment = Assignment.upsert(assignment)
@@ -38,11 +44,17 @@ def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
 
+    assignment_to_be_submit = Assignment.get_by_id(_id=submit_assignment_payload.id)
+
+    if assignment_to_be_submit.state != AssignmentStateEnum.DRAFT:
+        raise FyleError(400, "only a draft assignment can be submitted")
+
     submitted_assignment = Assignment.submit(
         _id=submit_assignment_payload.id,
         teacher_id=submit_assignment_payload.teacher_id,
         auth_principal=p
     )
+    submitted_assignment.state = AssignmentStateEnum.SUBMITTED
     db.session.commit()
     submitted_assignment_dump = AssignmentSchema().dump(submitted_assignment)
     return APIResponse.respond(data=submitted_assignment_dump)
