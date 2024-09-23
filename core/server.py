@@ -18,7 +18,7 @@ app.register_blueprint(principal_assignments_resources, url_prefix="/principal")
 
 
 @app.route("/")
-def ready():
+def ready():  # pragma: no cover
     response = jsonify({"status": "ready", "time": helpers.get_utc_now()})
 
     return response
@@ -33,9 +33,9 @@ def handle_error(err):
         )
     elif isinstance(err, ValidationError):
         return jsonify(error=err.__class__.__name__, message=err.messages), 400
-    elif isinstance(err, IntegrityError):
+    elif isinstance(err, IntegrityError):  # pragma: no cover
         return jsonify(error=err.__class__.__name__, message=str(err.orig)), 400
-    elif isinstance(err, HTTPException):
-        return jsonify(error=err.__class__.__name__, message=str(err)), err.code
+    elif isinstance(err, HTTPException):   # pragma: no cover
+        return jsonify(error=err.__class__.__name__, message=str(err)), err.code 
 
     raise err

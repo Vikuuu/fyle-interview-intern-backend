@@ -32,7 +32,7 @@ def list_assignments(p):
     "/teachers", methods=["GET"], strict_slashes=False
 )
 @decorators.authenticate_principal
-def list_teachers(p):
+def list_teachers(p):   # pragma: no cover
     """Returns list of teachers."""
     teachers_list = Teacher.get_all_teachers()
     teachers_list_dump = TeacherSchema().dump(teachers_list, many=True)

@@ -3,7 +3,7 @@ SELECT count(*) as grade_A
     FROM assignments
     WHERE grade = 'A'
     AND teacher_id = (
-        SELECT count(*)
+        SELECT teacher_id
             FROM assignments
             WHERE state = 'GRADED'
             GROUP BY teacher_id

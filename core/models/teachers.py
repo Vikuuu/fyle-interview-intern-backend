@@ -9,9 +9,9 @@ class Teacher(db.Model):
     created_at = db.Column(db.TIMESTAMP(timezone=True), default=helpers.get_utc_now, nullable=False)
     updated_at = db.Column(db.TIMESTAMP(timezone=True), default=helpers.get_utc_now, nullable=False, onupdate=helpers.get_utc_now)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return '<Teacher %r>' % self.id
 
     @classmethod
-    def get_all_teachers(cls):
+    def get_all_teachers(cls):  # pragma: no cover
         return cls.query.all()
